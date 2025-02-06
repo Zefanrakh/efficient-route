@@ -84,6 +84,11 @@ export class GetEfficientRouteUseCase {
             (c) => c.road_id === currentNodeData.id,
           );
           if (isConnectedData) {
+            /* If the road being iterated is indeed a neighbor of the current node,
+             * assign its distance to the variable connectionAsNeighbourDistance.
+             * If the connection is referenced in reverse, the distance value applied is also reversed,
+             * proportional to the maximum distance value of the road that is making the reference.
+             */
             connectionAsNeighbourDistance = isConnectedData.distance_value;
 
             connectionByOthers.set(connection.id, {
@@ -93,21 +98,7 @@ export class GetEfficientRouteUseCase {
             backReferer.push(connection.id);
           }
           for (const connectionNeighbour of connection.connections) {
-            if (connectionNeighbour.road_id === currentNodeData.id) {
-              /* If the road being iterated is indeed a neighbor of the current node,
-               * assign its distance to the variable connectionAsNeighbourDistance.
-               * If the connection is referenced in reverse, the distance value applied is also reversed,
-               * proportional to the maximum distance value of the road that is making the reference.
-               */
-              connectionAsNeighbourDistance =
-                connectionNeighbour.distance_value;
-
-              connectionByOthers.set(connection.id, {
-                road_id: connection.id,
-                distance_value: connectionAsNeighbourDistance,
-              });
-              backReferer.push(connection.id);
-            } else if (
+            if (
               connectionAsNeighbourDistance ===
               connectionNeighbour.distance_value
             ) {
