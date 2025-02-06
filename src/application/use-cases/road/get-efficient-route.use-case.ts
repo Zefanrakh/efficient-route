@@ -96,21 +96,22 @@ export class GetEfficientRouteUseCase {
               distance_value: connectionAsNeighbourDistance,
             });
             backReferer.push(connection.id);
-          }
-          for (const connectionNeighbour of connection.connections) {
-            if (
-              connectionAsNeighbourDistance ===
-              connectionNeighbour.distance_value
-            ) {
-              /* If there is another neighbour road (of the road being iterated)
-               * with the same distance, and this road is connected to another road
-               * without defining whether that other road is connected to the currentNode,
-               * then it is assumed that the other road is also connected to the currentNode
-               */
-              connectionByOthers.set(connectionNeighbour.road_id, {
-                road_id: connectionNeighbour.road_id,
-                distance_value: 0,
-              });
+
+            for (const connectionNeighbour of connection.connections) {
+              if (
+                connectionAsNeighbourDistance ===
+                connectionNeighbour.distance_value
+              ) {
+                /* If there is another neighbour road (of the road being iterated)
+                 * with the same distance, and this road is connected to another road
+                 * without defining whether that other road is connected to the currentNode,
+                 * then it is assumed that the other road is also connected to the currentNode
+                 */
+                connectionByOthers.set(connectionNeighbour.road_id, {
+                  road_id: connectionNeighbour.road_id,
+                  distance_value: 0,
+                });
+              }
             }
           }
         }
