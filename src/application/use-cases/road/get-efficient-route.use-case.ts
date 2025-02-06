@@ -80,9 +80,18 @@ export class GetEfficientRouteUseCase {
           // Variable of distance that indicating that the road being iterated is actually a neighbor of the current node
           let connectionAsNeighbourDistance = null;
 
-          const maxDistanceConnectedToIteratedRoad = Math.max(
-            ...connection.connections.map((c) => c.distance_value),
+          const isConnectedData = connection.connections.find(
+            (c) => c.road_id === currentNodeData.id,
           );
+          if (isConnectedData) {
+            connectionAsNeighbourDistance = isConnectedData.distance_value;
+
+            connectionByOthers.set(connection.id, {
+              road_id: connection.id,
+              distance_value: connectionAsNeighbourDistance,
+            });
+            backReferer.push(connection.id);
+          }
           for (const connectionNeighbour of connection.connections) {
             if (connectionNeighbour.road_id === currentNodeData.id) {
               /* If the road being iterated is indeed a neighbor of the current node,
@@ -91,8 +100,6 @@ export class GetEfficientRouteUseCase {
                * proportional to the maximum distance value of the road that is making the reference.
                */
               connectionAsNeighbourDistance =
-                maxDistanceConnectedToIteratedRoad +
-                1 -
                 connectionNeighbour.distance_value;
 
               connectionByOthers.set(connection.id, {
@@ -102,16 +109,14 @@ export class GetEfficientRouteUseCase {
               backReferer.push(connection.id);
             } else if (
               connectionAsNeighbourDistance ===
-              maxDistanceConnectedToIteratedRoad +
-                1 -
-                connectionNeighbour.distance_value
+              connectionNeighbour.distance_value
             ) {
               /* If there is another neighbour road (of the road being iterated)
                * with the same distance, and this road is connected to another road
                * without defining whether that other road is connected to the currentNode,
                * then it is assumed that the other road is also connected to the currentNode
                */
-              connectionByOthers.set(connection.id, {
+              connectionByOthers.set(connectionNeighbour.road_id, {
                 road_id: connectionNeighbour.road_id,
                 distance_value: 0,
               });
