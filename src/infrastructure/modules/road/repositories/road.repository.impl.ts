@@ -26,19 +26,19 @@ export class RoadRepositoryImpl implements RoadRepository {
         },
         {
           road_id: 5,
-          distance_value: 1,
+          distance_value: 2,
         },
         {
           road_id: 6,
-          distance_value: 1,
+          distance_value: 3,
         },
         {
           road_id: 8,
-          distance_value: 1,
+          distance_value: 3,
         },
         {
           road_id: 9,
-          distance_value: 1,
+          distance_value: 3,
         },
       ],
       vehicles: [],
@@ -128,7 +128,7 @@ export class RoadRepositoryImpl implements RoadRepository {
         },
         {
           road_id: 12,
-          distance_value: 1,
+          distance_value: 2,
         },
       ],
       vehicles: [],
