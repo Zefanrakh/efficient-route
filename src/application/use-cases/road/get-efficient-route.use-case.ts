@@ -1,3 +1,4 @@
+import { Connection } from 'src/domain/entities/connection.entity';
 import { RoadRepository } from 'src/domain/repositories/road.repository';
 import { VehicleRepository } from 'src/domain/repositories/vehicle.repository';
 import { GetRouteDto } from 'src/infrastructure/modules/road/dtos/get-route.dto';
@@ -58,7 +59,44 @@ export class GetEfficientRouteUseCase {
         const currentNodeData = roads.find(
           (road) => road.id === currentRoadId,
         )!;
-        const currentNodeConnections = currentNodeData.connections ?? [];
+        let currentNodeConnections = currentNodeData.connections ?? [];
+
+        // Searching for connections from other roads that are not stored in the currentNode connections
+        const connectionByOthers = new Map<number, Connection>();
+        for (const connection of roads) {
+          // Variable of distance that indicating that the road being iterated is actually a neighbor of the current node
+          let connectionAsNeighbourDistance = null;
+          for (const connectionNeighbour of connection.connections) {
+            if (connectionNeighbour.road_id === currentNodeData.id) {
+              connectionByOthers.set(connection.id, {
+                road_id: connection.id,
+                distance_value: connectionNeighbour.distance_value,
+              });
+              // If the road being iterated is indeed a neighbor of the current node, assign its distance to the variable connectionAsNeighbourDistance
+              connectionAsNeighbourDistance =
+                connectionNeighbour.distance_value;
+            } else if (
+              connectionAsNeighbourDistance ===
+              connectionNeighbour.distance_value
+            ) {
+              /* If there is another neighbour road (of the road being iterated)
+               * with the same distance, and this road is connected to another road
+               * without defining whether that other road is connected to the currentNode,
+               * then it is assumed that the other road is also connected to the currentNode
+               */
+              connectionByOthers.set(connection.id, {
+                road_id: connectionNeighbour.road_id,
+                distance_value: 0,
+              });
+            }
+          }
+        }
+
+        // Finally, the connections that connected to this currentNode, then being merged to this currentNode connections
+        currentNodeConnections = currentNodeConnections.concat([
+          ...connectionByOthers.values(),
+        ]);
+
         for (const { road_id, distance_value } of currentNodeConnections) {
           if (!notBeenPassed.has(road_id)) continue;
 
