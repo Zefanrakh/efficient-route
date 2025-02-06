@@ -36,6 +36,7 @@ export class GetEfficientRouteUseCase {
       const trafficValues: { [id: number]: number } = {};
       const previous: { [id: number]: number | null } = {};
       const notBeenPassed = new Set(roads.map((road) => road.id));
+      const backReferer: number[] = []; // Array of road IDs where the distances of all their connections would be reversed
 
       // Initialize all distances to Infinity because we are looking for the shortest distance
       // or the least congestion. By starting with the maximum possible value (Infinity),
@@ -59,25 +60,51 @@ export class GetEfficientRouteUseCase {
         const currentNodeData = roads.find(
           (road) => road.id === currentRoadId,
         )!;
+
+        // If currentnode included in backReferer, so all connection distance be made reversed
         let currentNodeConnections = currentNodeData.connections ?? [];
+        if (backReferer.includes(currentNodeData.id)) {
+          const maxDistanceConnectedToIteratedRoad = Math.max(
+            ...currentNodeConnections.map((c) => c.distance_value),
+          );
+          currentNodeConnections = currentNodeConnections.map((c) => ({
+            ...c,
+            distance_value:
+              maxDistanceConnectedToIteratedRoad + 1 - c.distance_value,
+          }));
+        }
 
         // Searching for connections from other roads that are not stored in the currentNode connections
         const connectionByOthers = new Map<number, Connection>();
         for (const connection of roads) {
           // Variable of distance that indicating that the road being iterated is actually a neighbor of the current node
           let connectionAsNeighbourDistance = null;
+
+          const maxDistanceConnectedToIteratedRoad = Math.max(
+            ...connection.connections.map((c) => c.distance_value),
+          );
           for (const connectionNeighbour of connection.connections) {
             if (connectionNeighbour.road_id === currentNodeData.id) {
+              /* If the road being iterated is indeed a neighbor of the current node,
+               * assign its distance to the variable connectionAsNeighbourDistance.
+               * If the connection is referenced in reverse, the distance value applied is also reversed,
+               * proportional to the maximum distance value of the road that is making the reference.
+               */
+              connectionAsNeighbourDistance =
+                maxDistanceConnectedToIteratedRoad +
+                1 -
+                connectionNeighbour.distance_value;
+
               connectionByOthers.set(connection.id, {
                 road_id: connection.id,
-                distance_value: connectionNeighbour.distance_value,
+                distance_value: connectionAsNeighbourDistance,
               });
-              // If the road being iterated is indeed a neighbor of the current node, assign its distance to the variable connectionAsNeighbourDistance
-              connectionAsNeighbourDistance =
-                connectionNeighbour.distance_value;
+              backReferer.push(connection.id);
             } else if (
               connectionAsNeighbourDistance ===
-              connectionNeighbour.distance_value
+              maxDistanceConnectedToIteratedRoad +
+                1 -
+                connectionNeighbour.distance_value
             ) {
               /* If there is another neighbour road (of the road being iterated)
                * with the same distance, and this road is connected to another road
