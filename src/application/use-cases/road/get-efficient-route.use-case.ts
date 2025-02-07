@@ -86,8 +86,6 @@ export class GetEfficientRouteUseCase {
           if (isConnectedData) {
             /* If the road being iterated is indeed a neighbor of the current node,
              * assign its distance to the variable connectionAsNeighbourDistance.
-             * If the connection is referenced in reverse, the distance value applied is also reversed,
-             * proportional to the maximum distance value of the road that is making the reference.
              */
             connectionAsNeighbourDistance = isConnectedData.distance_value;
 
